@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CustomAuthenticationProvider implements AuthenticationProvider {
 
+    private final PasswordEncoder passwordEncoder;
     private final UserDetailsService userDetailsService;
 
     @Override
@@ -26,7 +27,9 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         if (userDetails == null) {
             throw new UsernameNotFoundException("User not found");
         }
-
+        if (!passwordEncoder.matches(password, userDetails.getPassword())) {
+            throw new BadCredentialsException("Invalid credentials");
+        }
 
         return new UsernamePasswordAuthenticationToken(
                 userDetails, password, userDetails.getAuthorities());
