@@ -7,6 +7,8 @@ import org.example.psrauth.model.entity.User;
 import org.example.psrauth.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.*;
@@ -25,5 +27,14 @@ public class AuthController {
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + ex.getMessage());
         }
+    }
+
+    @GetMapping("/login")
+    public String login() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication.isAuthenticated()) {
+            return "User logged in successfully: " + authentication.getName();
+        }
+        return "User is not authenticated";
     }
 }
