@@ -26,9 +26,12 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public User register(RequestUserDTO userDTO) {
+        Role role = roleRepository.findByRoleType(RoleType.ROLE_USER)
+                .orElseThrow(() -> new IllegalArgumentException("Role not found!"));
 
         User user = userMapper.toEntity(userDTO);
         user.setUsername(userDTO.username());
+        user.setRole(role);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         return userRepository.save(user);
