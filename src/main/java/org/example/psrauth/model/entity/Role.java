@@ -11,7 +11,6 @@ import java.util.*;
 
 
 @Entity
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "roles")
@@ -26,4 +25,31 @@ public class Role {
     @OneToMany(mappedBy = "role", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<User> users;
+
+    public Long getId() {
+        return id;
+    }
+
+    public Role setId(Long id) {
+        this.id = id;
+        return this;
+    }
+
+    public RoleType getRoleType() {
+        return roleType;
+    }
+
+    public Role setRoleType(RoleType roleType) {
+        this.roleType = roleType;
+        return this;
+    }
+
+    public List<User> getUsers() {
+        return users;
+    }
+
+    public Role setUsers(List<User> users) {
+        this.users = users;
+        return this;
+    }
 }
