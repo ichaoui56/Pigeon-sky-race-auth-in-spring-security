@@ -1,4 +1,4 @@
-package org.example.psrauth.config;
+package org.example.psrauth.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
