@@ -1,14 +1,14 @@
 package org.example.psrauth.config;
 
 import lombok.RequiredArgsConstructor;
+import org.example.psrauth.exception.IncorrectPasswordException;
+import org.example.psrauth.exception.UsernameNotFoundException;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -21,18 +21,23 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        String username= authentication.getName();
+        String username = authentication.getName();
         String password = authentication.getCredentials().toString();
+
+        // Load user details
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
         if (userDetails == null) {
-            throw new UsernameNotFoundException("User not found");
-        }
-        if (!passwordEncoder.matches(password, userDetails.getPassword())) {
-            throw new BadCredentialsException("Invalid credentials");
+            throw new UsernameNotFoundException("User not found with username: " + username);
         }
 
-        return new UsernamePasswordAuthenticationToken(
-                userDetails, password, userDetails.getAuthorities());
+        // Validate password
+        if (!passwordEncoder.matches(password, userDetails.getPassword())) {
+            throw new IncorrectPasswordException("Incorrect password provided for username: " + username);
+        }
+
+        // Return authenticated token
+        return new UsernamePasswordAuthenticationToken(userDetails, password, userDetails.getAuthorities());
     }
 
     @Override
