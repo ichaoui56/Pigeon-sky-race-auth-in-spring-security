@@ -48,11 +48,13 @@ public class Competition {
     @NotBlank(message = "Release place cannot be blank")
     private String releasePlace;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+
+    @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     @NotNull(message = "User cannot be null")
     private User user;
 
-    @OneToMany(mappedBy = "competition", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+
+    @OneToMany(mappedBy = "competition", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Pigeon> pigeons = new ArrayList<>();
 }

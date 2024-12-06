@@ -2,9 +2,8 @@ package org.example.psrauth.service.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.example.psrauth.dto.user.RequestUserDTO;
-import org.example.psrauth.exception.UsernameAlreadyExistsException;
+import org.example.psrauth.exception.AlreadyExistsException;
 import org.example.psrauth.mapper.UserMapper;
 import org.example.psrauth.model.RoleType;
 import org.example.psrauth.model.entity.Role;
@@ -18,29 +17,31 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @AllArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private UserRepository userRepository;
-    private RoleRepository roleRepository;
-    private PasswordEncoder passwordEncoder;
-    private UserMapper userMapper;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
     @Transactional
     @Override
     public User register(RequestUserDTO userDTO) {
+    
         if (userRepository.existsByUsername(userDTO.username())) {
-            throw new UsernameAlreadyExistsException("Username " + userDTO.username() + " already exists");
+            throw new AlreadyExistsException("Username " + userDTO.username() + " already exists");
         }
 
         Role role = roleRepository.findByRoleType(RoleType.ROLE_USER)
-                .orElseThrow(() -> new IllegalArgumentException("Role not found!"));
+                .orElseThrow(() -> new IllegalStateException("Role not found"));
 
         User user = userMapper.toEntity(userDTO);
-        user.setUsername(userDTO.username());
-        user.setRole(role);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setRole(role);
 
         return userRepository.save(user);
     }
@@ -63,4 +64,10 @@ public class UserServiceImpl implements UserService {
         user.setRole(role);
         return userRepository.save(user);
     }
+
+    @Override
+    public Optional<User> findByUsername(String name) {
+        return userRepository.findByUsername(name);
+    }
+
 }

@@ -1,47 +1,81 @@
 package org.example.psrauth.exception;
 
-import org.example.psrauth.dto.ErrorDTO;
+import jakarta.servlet.http.HttpServletResponse;
+import org.example.psrauth.dto.ValidationErrorDTO;
+import org.example.psrauth.dto.errors.ErrorDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    private ResponseEntity<ErrorDTO> buildErrorResponse(HttpStatus status, String error, String message) {
-        ErrorDTO errorResponse = new ErrorDTO(
-                status.value(),
-                error,
-                message
+
+    private ResponseEntity<ErrorDTO> buildErrorResponse(HttpStatus status, String message) {
+        return ResponseEntity.status(status).body(
+                ErrorDTO.builder()
+                        .message(message)
+                        .timestamp(new Date())
+                        .status(status.value())
+                        .build()
         );
-        return ResponseEntity.status(status).body(errorResponse);
     }
 
-    @ExceptionHandler(UsernameAlreadyExistsException.class)
-    public ResponseEntity<ErrorDTO> handleUsernameAlreadyExists(UsernameAlreadyExistsException ex) {
-        return buildErrorResponse(HttpStatus.CONFLICT, "Username already exists", ex.getMessage());
+    @ExceptionHandler(AlreadyExistsException.class)
+    public ResponseEntity<ErrorDTO> handleAlreadyExistsException(AlreadyExistsException ex) {
+        return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage());
     }
 
-    @ExceptionHandler(UsernameNotFoundException.class)
-    public ResponseEntity<ErrorDTO> handleUsernameNotFound(UsernameNotFoundException ex) {
-        return buildErrorResponse(HttpStatus.NOT_FOUND, "User not found", ex.getMessage());
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ErrorDTO> handleNotFoundException(NotFoundException ex) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler(IncorrectPasswordException.class)
     public ResponseEntity<ErrorDTO> handleIncorrectPassword(IncorrectPasswordException ex) {
-        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Incorrect password", ex.getMessage());
-    }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorDTO> handleGenericException(Exception ex) {
-        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", ex.getMessage());
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorDTO> handleIllegalArgumentException(IllegalArgumentException ex) {
-        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage());
+
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorDTO> handleIllegalStateException(IllegalStateException ex) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ValidationErrorDTO> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        for (FieldError error : ex.getBindingResult().getFieldErrors()) {
+            errors.put(error.getField(), error.getDefaultMessage());
+        }
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                ValidationErrorDTO.builder()
+                        .message("Validation failed")
+                        .timestamp(new Date())
+                        .status(HttpServletResponse.SC_BAD_REQUEST)
+                        .details(errors)
+                        .build()
+        );
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorDTO> handleGenericException(Exception ex) {
+        ex.printStackTrace(); // For debugging purposes
+        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
     }
 }
+
