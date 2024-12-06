@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.example.psrauth.dto.user.RequestUserDTO;
+import org.example.psrauth.exception.UsernameAlreadyExistsException;
 import org.example.psrauth.mapper.UserMapper;
 import org.example.psrauth.model.RoleType;
 import org.example.psrauth.model.entity.Role;
@@ -26,6 +27,10 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public User register(RequestUserDTO userDTO) {
+        if (userRepository.existsByUsername(userDTO.username())) {
+            throw new UsernameAlreadyExistsException("Username " + userDTO.username() + " already exists");
+        }
+
         Role role = roleRepository.findByRoleType(RoleType.ROLE_USER)
                 .orElseThrow(() -> new IllegalArgumentException("Role not found!"));
 
@@ -36,6 +41,4 @@ public class UserServiceImpl implements UserService {
 
         return userRepository.save(user);
     }
-
-
 }
