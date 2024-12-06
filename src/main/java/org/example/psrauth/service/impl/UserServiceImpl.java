@@ -12,6 +12,9 @@ import org.example.psrauth.model.entity.User;
 import org.example.psrauth.repository.RoleRepository;
 import org.example.psrauth.repository.UserRepository;
 import org.example.psrauth.service.UserService;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -39,6 +42,25 @@ public class UserServiceImpl implements UserService {
         user.setRole(role);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
+        return userRepository.save(user);
+    }
+
+    @Override
+    public User changeRole(String username, String newRole) {
+        UserDetails currentUser = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (currentUser == null || !currentUser.getAuthorities().stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"))) {
+            throw new AccessDeniedException("Only admins can change user roles");
+        }
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        Role role = roleRepository.findByRoleType(RoleType.valueOf(newRole))
+                .orElseThrow(() -> new IllegalArgumentException("Role not found"));
+
+        user.setRole(role);
         return userRepository.save(user);
     }
 }
