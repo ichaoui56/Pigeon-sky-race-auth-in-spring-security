@@ -1,4 +1,4 @@
-package org.example.psrauth.config;
+package org.example.psrauth.security;
 
 import lombok.RequiredArgsConstructor;
 import org.example.psrauth.exception.IncorrectPasswordException;

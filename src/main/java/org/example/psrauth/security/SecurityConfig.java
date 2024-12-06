@@ -1,4 +1,4 @@
-package org.example.psrauth.config;
+package org.example.psrauth.security;
 
 import lombok.RequiredArgsConstructor;
 import org.example.psrauth.exception.CustomAccessDeniedHandler;
@@ -10,7 +10,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.example.psrauth.security.CustomAuthenticationEntryPoint;
 
 @Configuration
 @RequiredArgsConstructor
